@@ -22,7 +22,9 @@ class BatDongSanSpider(scrapy.Spider):
 
     def parse(self, response):
         title = response.css('#product-detail > div.pm-title > h1::text').extract_first()
-        print  ' ===========================', title.encode('utf-8')
+        description = response.css('#product-detail > div.pm-content.stat::text').extract_first()
+
+        address = response.css('#product-detail > div.pm-content-detail > table > tbody > tr > td:nth-child(1) > div > div.left-detail > div:nth-child(2) > div.right')
 
         yield {
             'title': title.encode('utf-8'),
