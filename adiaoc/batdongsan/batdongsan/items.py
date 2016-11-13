@@ -27,3 +27,5 @@ class BatdongsanItem(scrapy.Item):
     phone = scrapy.Field() 
     email = scrapy.Field() 
     contact_name = scrapy.Field() 
+
+    last_updated = scrapy.Field(serializer=str)
