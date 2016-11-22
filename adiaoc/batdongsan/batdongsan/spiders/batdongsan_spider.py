@@ -34,7 +34,7 @@ class BatDongSanSpider(RedisSpider):
         url = response.url
 
         title = response.css('#product-detail > div.pm-title > h1::text').extract_first()
-        description = response.css('#product-detail > div.pm-content.stat::text').extract_first()
+        description = response.css('#product-detail > div.pm-content.stat').extract_first()
 
         area_text = response.css('#product-detail > div.kqchitiet > span:nth-child(2) > span:nth-child(2) > strong::text').extract_first()
         area = self.parse_area(area_text)
@@ -50,7 +50,6 @@ class BatDongSanSpider(RedisSpider):
         address = response.xpath('//*[@class="left-detail"]/div[contains(., \''+ address_label +'\')]/div[2]//text()').extract_first()
         provincial_city, district = self.parse_province_district_from_address(address)
 
-        post_type = response.css('#product-detail > div.pm-content-detail > table > tbody > tr > td:nth-child(1) > div > div.left-detail > div:nth-child(4) > div.right::text').extract_first()
         project = ''
         
         end_date_label = u'Ngày hết hạn'
@@ -59,6 +58,11 @@ class BatDongSanSpider(RedisSpider):
         contact_name_label = u'Tên liên lạc'
         contact_name = response.xpath('//*[@id="divCustomerInfo"]/div[contains(., \''+ contact_name_label +'\')]/div[2]//text()').extract_first()
         
+        post_type_label = u'Loại tin rao'
+        post_type_text = response.xpath('//*[@class="left-detail"]/div[contains(., \''+ post_type_label +'\')]/div[2]//text()').extract_first()
+        post_type = self.parse_post_type(post_type_text)
+        post_cat = self.parse_post_cat(post_type_text)
+
         email_raw = response.xpath('//*[@id="LeftMainContent__productDetail_contactEmail"]/div[2]/script//text()').extract_first()
         email = self.parse_email_from_raw(email_raw)
 
@@ -89,6 +93,7 @@ class BatDongSanSpider(RedisSpider):
             'district': self.parse_result_item(district),
             'address': self.parse_result_item(address),
             'post_type': self.parse_result_item(post_type),
+            'post_cat': self.parse_result_item(post_cat),
             'project': self.parse_result_item(project),
             'end_date': self.parse_result_item(end_date, 'date'),
             'contact_name': self.parse_result_item(contact_name),
@@ -217,3 +222,12 @@ class BatDongSanSpider(RedisSpider):
             url.append(text.replace('200x200', '745x510'))
 
         return url
+
+    def parse_post_type(self, text):
+        if text.find(u'thuê') >= -1:
+            return 'bds_hire'
+
+        return 'bds_sale'
+
+    def parse_post_cat(self, text):
+        return text
