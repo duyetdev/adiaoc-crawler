@@ -28,12 +28,13 @@ ROBOTSTXT_OBEY = True
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
 #DOWNLOAD_DELAY = 3
+DOWNLOAD_TIMEOUT = 15
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
+COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -68,6 +69,11 @@ EXTENSIONS = {
 #ITEM_PIPELINES = {
 #    'batdongsan.pipelines.SomePipeline': 300,
 #}
+
+RETRY_ENABLED = False
+CLOSESPIDER_ITEMCOUNT = 0
+CLOSESPIDER_PAGECOUNT = 0
+
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
