@@ -33,7 +33,7 @@ class BatDongSanSpider(RedisSpider):
     def parse(self, response):
         url = response.url
 
-        title = response.css('#product-detail > div.pm-title > h1::text').extract_first()
+        title = response.css('title::text').extract_first()
         description = response.css('#product-detail > div.pm-content.stat').extract_first()
 
         area_text = response.css('#product-detail > div.kqchitiet > span:nth-child(2) > span:nth-child(2) > strong::text').extract_first()
