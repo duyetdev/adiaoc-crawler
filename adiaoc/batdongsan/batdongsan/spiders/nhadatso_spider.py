@@ -87,7 +87,7 @@ class NhaDatSoSpider(RedisSpider):
 
         youtube_url = []
 
-        if provincial_city and district:
+        if 1 == 1 or (provincial_city and district):
             yield {
                 'url': url,
                 'title': self.parse_result_item(title),
