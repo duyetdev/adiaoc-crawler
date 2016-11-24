@@ -4,9 +4,11 @@ import scrapy
 from scrapy_redis.spiders import RedisSpider
 from datetime import datetime
 import re
+import geocoder
 from HTMLParser import HTMLParser
 h = HTMLParser()
 
+IMAGE_LIMIT = 3
 
 class BatDongSanSpider(RedisSpider):
     name = "batdongsan"
@@ -48,7 +50,7 @@ class BatDongSanSpider(RedisSpider):
         # district = response.css('#product-detail > div.kqchitiet > span.diadiem-title.mar-right-15::text').extract_first()
         address_label = u'Địa chỉ'
         address = response.xpath('//*[@class="left-detail"]/div[contains(., \''+ address_label +'\')]/div[2]//text()').extract_first()
-        provincial_city, district = self.parse_province_district_from_address(address)
+        provincial_city, district = self.parse_province_district_from_address((address or '') + (title or ''))
 
         project = ''
         
@@ -78,29 +80,32 @@ class BatDongSanSpider(RedisSpider):
         images = self.parse_real_image_url(images)
 
         youtube_url = []
+        longlat = self.parse_longlat(address)
 
-        yield {
-            'url': url,
-            'title': self.parse_result_item(title),
-            'description': self.parse_result_item(description, 'description'),
-            'area': self.parse_result_item(area, 'int'),
-            'area_text': self.parse_result_item(area_text),
-            'price': self.parse_result_item(price, 'money'),
-            'price_text': self.parse_result_item(price_text),
-            'unit': unit,
-            'property_type': self.parse_result_item(property_type),
-            'provincial_city': self.parse_result_item(provincial_city),
-            'district': self.parse_result_item(district),
-            'address': self.parse_result_item(address),
-            'post_type': self.parse_result_item(post_type),
-            'post_cat': self.parse_result_item(post_cat),
-            'project': self.parse_result_item(project),
-            'end_date': self.parse_result_item(end_date, 'date'),
-            'contact_name': self.parse_result_item(contact_name),
-            'email': self.parse_result_item(email),
-            'phone': phone,
-            'images': images,
-        }
+        if provincial_city and district:
+            yield {
+                'url': url,
+                'title': self.parse_result_item(title),
+                'description': self.parse_result_item(description, 'description'),
+                'area': self.parse_result_item(area, 'int'),
+                'area_text': self.parse_result_item(area_text),
+                'price': self.parse_result_item(price, 'money'),
+                'price_text': self.parse_result_item(price_text),
+                'unit': unit,
+                'property_type': self.parse_result_item(property_type),
+                'provincial_city': self.parse_result_item(provincial_city),
+                'district': self.parse_result_item(district),
+                'address': self.parse_result_item(address),
+                'post_type': self.parse_result_item(post_type),
+                'post_cat': self.parse_result_item(post_cat),
+                'project': self.parse_result_item(project),
+                'end_date': self.parse_result_item(end_date, 'date'),
+                'contact_name': self.parse_result_item(contact_name),
+                'email': self.parse_result_item(email),
+                'phone': phone,
+                'images': images[:IMAGE_LIMIT],
+                'longlat': longlat,
+            }
 
     def parse_result_item(self, text, data_type='str'):
         if text == None:
@@ -231,3 +236,12 @@ class BatDongSanSpider(RedisSpider):
 
     def parse_post_cat(self, text):
         return text
+
+    def parse_longlat(self, text):
+        if not text:
+            return None
+        try:
+            g = geocoder.google(text)
+            return ','.join([str(t) for t in g.latlng])
+        except:
+            return None

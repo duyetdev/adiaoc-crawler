@@ -7,8 +7,9 @@ import re
 from HTMLParser import HTMLParser
 h = HTMLParser()
 
+IMAGE_LIMIT = 3
 
-class BatDongSanSpider(RedisSpider):
+class NhaDatSoSpider(RedisSpider):
     name = "nhadatso"
     allowed_domains = ['nhadatso.com']
 
@@ -55,7 +56,7 @@ class BatDongSanSpider(RedisSpider):
         address_label = u'Địa chỉ'
         # address = response.xpath('//*[@class="left-detail"]/div[contains(., \''+ address_label +'\')]/div[2]//text()').extract_first()
         address = response.css('div.property-addr > span:nth-child(2)::text').extract_first()
-        provincial_city, district = self.parse_province_district_from_address(address)
+        provincial_city, district = self.parse_province_district_from_address((address or '') + (title or ''))
 
         project = ''
         
@@ -76,39 +77,49 @@ class BatDongSanSpider(RedisSpider):
         email = self.parse_email_from_raw(email_raw)
 
         phone_label = u'Mobile'
-        phone = response.css('.phone_ll::text').extract_first()
+        phone = response.css('.phone_ll').extract_first()
         phone = self.parse_result_item(phone, 'phone')
         
-        images = response.css('#property-detail-flexslider > div > div.flex-viewport > ul > li > a > img::attr(src)').extract()
+        images = response.css('ul.slides a > img::attr(src)').extract()
+
+        longlat_script = response.css('script').extract()
+        longlat = self.parse_longlat(longlat_script)
 
         youtube_url = []
 
-        yield {
-            'url': url,
-            'title': self.parse_result_item(title),
-            'description': self.parse_result_item(description, 'description'),
-            'area': self.parse_result_item(area, 'int'),
-            'area_text': self.parse_result_item(area_text),
-            'price': self.parse_result_item(price, 'money'),
-            'price_text': self.parse_result_item(price_text),
-            'unit': unit,
-            'property_type': self.parse_result_item(property_type),
-            'provincial_city': self.parse_result_item(provincial_city),
-            'district': self.parse_result_item(district),
-            'address': self.parse_result_item(address),
-            'post_type': self.parse_result_item(post_type),
-            'post_cat': self.parse_result_item(post_cat),
-            'project': self.parse_result_item(project),
-            'end_date': self.parse_result_item(end_date, 'date'),
-            'contact_name': self.parse_result_item(contact_name),
-            'email': self.parse_result_item(email),
-            'phone': phone,
-            'images': images,
-        }
+        if provincial_city and district:
+            yield {
+                'url': url,
+                'title': self.parse_result_item(title),
+                'description': self.parse_result_item(description, 'description'),
+                'area': self.parse_result_item(area, 'int'),
+                'area_text': self.parse_result_item(area_text),
+                'price': self.parse_result_item(price, 'money'),
+                'price_text': self.parse_result_item(price_text),
+                'unit': unit,
+                'property_type': self.parse_result_item(property_type),
+                'provincial_city': self.parse_result_item(provincial_city),
+                'district': self.parse_result_item(district),
+                'address': self.parse_result_item(address),
+                'post_type': self.parse_result_item(post_type),
+                'post_cat': self.parse_result_item(post_cat),
+                'project': self.parse_result_item(project),
+                'end_date': self.parse_result_item(end_date, 'date'),
+                'contact_name': self.parse_result_item(contact_name),
+                'email': self.parse_result_item(email),
+                'phone': phone,
+                'images': images[:IMAGE_LIMIT],
+                'longlat': longlat,
+            }
 
     def parse_result_item(self, text, data_type='str'):
         if text == None:
             return ''
+        
+        if data_type == 'phone':
+            results = re.findall(r'[\d]{1,13}', text)
+            if results:
+                return max(results, key=len)
 
         if data_type == 'number':
             return text
@@ -225,4 +236,20 @@ class BatDongSanSpider(RedisSpider):
         return 'bds_sale'
 
     def parse_post_cat(self, text):
+        _text = text.split(u'tại')
+        if _text and len(_text) == 2:
+            return _text[0]
         return text
+
+    def parse_longlat(self, text_list):
+        if not text_list: 
+            return None
+
+        regex = r"initialize\(([\d]+\.[\d]+,[\d]+\.[\d]+)\)"
+        for script in text_list:
+            matches = re.search(regex, script)
+
+            if matches and matches.group(1):
+                return matches.group(1)
+        
+        return None

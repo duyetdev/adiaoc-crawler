@@ -66,9 +66,9 @@ EXTENSIONS = {
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'batdongsan.pipelines.SomePipeline': 300,
-#}
+# ITEM_PIPELINES = {
+   
+# }
 
 RETRY_ENABLED = False
 CLOSESPIDER_ITEMCOUNT = 0
@@ -155,7 +155,8 @@ DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
 
 # Store scraped item in redis for post-processing.
 ITEM_PIPELINES = {
-    'scrapy_redis.pipelines.RedisPipeline': 300
+    'scrapy_redis.pipelines.RedisPipeline': 300,
+    'batdongsan.pipelines.BatdongsanPipeline': 400,
 }
 
 # The item pipeline serializes and stores the items in this redis key.
@@ -188,3 +189,7 @@ ITEM_PIPELINES = {
 
 # Default start urls key for RedisSpider and RedisCrawlSpider.
 #REDIS_START_URLS_KEY = '%(name)s:start_urls'
+
+
+MONGO_URI = 'mongodb://localhost'
+MONGO_DATABASE = 'adiaoc'
