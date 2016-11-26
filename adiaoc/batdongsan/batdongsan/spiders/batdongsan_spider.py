@@ -229,6 +229,9 @@ class BatDongSanSpider(RedisSpider):
         return url
 
     def parse_post_type(self, text):
+        if not text: 
+            return 'bds_sale'
+            
         if text.find(u'thuê') > -1:
             return 'bds_hire'
 

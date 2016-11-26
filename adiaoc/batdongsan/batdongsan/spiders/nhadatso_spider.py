@@ -230,6 +230,9 @@ class NhaDatSoSpider(RedisSpider):
         return email
 
     def parse_post_type(self, text):
+        if not text: 
+            return 'bds_sale'
+            
         if text.find(u'thuê') > -1 or text.find(u'Thuê') > -1:
             return 'bds_hire'
 

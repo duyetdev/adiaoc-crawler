@@ -1,2 +1,5 @@
 scrapy-proxies==0.3
 scrapy_redis
+falcon
+pymongo
+gunicorn
